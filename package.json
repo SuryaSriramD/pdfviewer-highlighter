@@ -1,0 +1,27 @@
+{
+  "name": "pdf-viewer",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@react-pdf-viewer/core": "^3.12.0",
+    "@react-pdf-viewer/highlight": "^3.12.0",
+    "next": "^14.2.24",
+    "pdf-viewer": "file:",
+    "pdfjs-dist": "^3.11.174",
+    "react": "^18.0.0",
+    "react-color": "^2.19.3",
+    "react-dom": "^18.0.0",
+    "react-icons": "^5.5.0",
+    "react-pdf": "^9.2.1",
+    "react-pdf-highlighter": "^8.0.0-rc.0"
+  },
+  "resolutions": {
+    "pdfjs-dist": "3.11.174",
+    "react-pdf/pdfjs-dist": "3.11.174",
+    "@react-pdf-viewer/core/pdfjs-dist": "3.11.174"
+  }
+}

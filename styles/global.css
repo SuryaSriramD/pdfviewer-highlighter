@@ -1,0 +1,111 @@
+.pdf-container {
+  width: 90vw;
+  max-width: 900px;
+  height: 90vh;
+  overflow-y: auto !important;  /* ✅ Ensure scrolling works */
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  position: relative; /* Add this to ensure proper positioning */
+}
+
+.pdf-page {
+  width: 100%;
+  max-width: 800px; /* Adjust width if needed */
+  margin-bottom: 10px; /* Space between pages */
+  border: 1px solid #ddd; /* Optional: Adds a border */
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow */
+}
+
+.text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2; /* Above canvas */
+  pointer-events: auto; /* Allow text selection */
+  user-select: text; /* Enable selection */
+  color: transparent; /* Prevent overlap with PDF text */
+}
+
+.pdfViewer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Ensure PDF starts at the top */
+}
+
+/* Prevent horizontal scroll on entire page */
+html, body {
+  overflow: hidden; /* Prevent multiple scrolls */
+  margin: 0;
+  padding: 0;
+}
+
+/* Fix for the extra scrollbar issue */
+.rpv-core__viewer {
+  overflow: visible !important;
+}
+
+.rpv-core__viewer-container {
+  overflow: visible !important;
+}
+
+/* Ensure only the pdf-container has scrolling */
+.pdf-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.textLayer span {
+  background-color: transparent !important;
+  position: relative;
+}
+
+/* Highlight layer styling */
+.highlight-layer {
+  position: absolute !important;
+  pointer-events: none;
+  z-index: 100 !important; /* Ensure it's above the text layer */
+  overflow: hidden !important; /* Prevent scrollbar */
+}
+
+.rpv-core__text-layer {
+  z-index: 1;
+}
+
+.rpv-core__viewer-page {
+  position: relative;
+}
+
+/* Make sure the highlight layer is above everything */
+.highlight-layer {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100 !important;
+}
+
+/* Fix for scrollbar issues */
+.rpv-core__inner-page {
+  overflow: visible !important;
+}
+
+.rpv-core__text-layer {
+  overflow: visible !important;
+}
+
+/* Ensure the highlight layer doesn't cause scrollbars */
+.highlight-layer div {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100 !important;
+  overflow: hidden !important;
+}
