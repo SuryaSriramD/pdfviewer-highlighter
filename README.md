@@ -75,25 +75,44 @@ A full-stack web application for viewing PDFs with text highlighting functionali
 
 ## Project Structure
 
+# Updated Project Structure for README.md
 ```
 pdf-viewer-project/
-├── components/           # React components
-│   ├── PdfViewer.js      # Main PDF viewer component
-│   ├── PdfHighlighter.js # Highlighting functionality
-│   └── PdfToolbar.js     # Toolbar with tools
-├── pages/                # Next.js pages
-│   ├── index.js          # Home page with upload
-│   └── view/[id].js      # PDF viewer page
-├── styles/               # CSS styles
-├── backend/              # FastAPI backend
-│   ├── main.py           # Main application entry
-│   ├── database.py       # Database connection
-│   └── routes/           # API routes
-│       ├── pdf.py        # PDF upload/retrieval
-│       ├── highlights.py # Highlight management
-│       └── realtime.py   # WebSocket for real-time
-└── public/               # Static assets
+├── components/                # React components
+│   ├── PdfHighlighter.js      # Highlighting functionality
+│   ├── PdfToolbar.js          # Toolbar with tools
+│   └── PdfViewer.js           # Main PDF viewer component
+├── pages/                     # Next.js pages
+│   ├── _app.js                # Next.js app component
+│   ├── index.js               # Home page with upload
+│   └── view/                  # PDF viewer pages
+├── public/                    # Static assets
+│   └── pdfs/                  # PDF worker files
+│       ├── pdf.worker.js      # PDF.js worker
+│       └── pdf.worker.min.js  # Minified PDF.js worker
+├── routes/                    # Backend API routes
+│   ├── highlights.py          # Highlight management
+│   ├── pdf.py                 # PDF upload/retrieval
+│   └── realtime.py            # WebSocket for real-time
+├── styles/                    # CSS styles
+│   └── global.css             # Global CSS styles
+├── .env                       # Environment variables
+├── .gitignore                 # Git ignore file
+├── database.py                # Database connection
+├── main.py                    # FastAPI main application
+├── package.json               # Node.js dependencies
+├── package-lock.json          # Dependency lock file
+├── requirements.txt           # Python dependencies
+└── _pycache_/                 # Python cache files
 ```
+(For Reference)
+1. Frontend components in the `components/` directory
+2. Next.js pages in the `pages/` directory
+3. Backend routes in the `routes/` directory
+4. PDF worker files in the `public/pdfs/` directory
+5. Styles in the `styles/` directory
+6. Configuration files at the root level
+
 
 ## API Endpoints
 
