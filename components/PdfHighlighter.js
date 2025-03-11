@@ -300,28 +300,48 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
         if (highlight && highlight.rects && Array.isArray(highlight.rects)) {
           highlight.rects.forEach((rect, rectIndex) => {
             if (rect) {
-              // Find the correct page highlight layer
               const pageIndex = rect.pageIndex || 0;
               const pageLayer = Array.from(pageHighlightLayers).find(
                 layer => parseInt(layer.dataset.pageIndex) === pageIndex
               );
               
               if (pageLayer) {
+                const highlightContainer = document.createElement('div');
+                highlightContainer.style.position = 'absolute';
+                highlightContainer.style.left = `${rect.left}px`;
+                highlightContainer.style.top = `${rect.top}px`;
+                highlightContainer.style.width = `${rect.width}px`;
+                highlightContainer.style.height = `${rect.height}px`;
+                highlightContainer.style.cursor = 'pointer';
+                
                 const highlightElement = document.createElement('div');
                 highlightElement.style.position = 'absolute';
-                highlightElement.style.left = `${rect.left}px`;
-                highlightElement.style.top = `${rect.top}px`;
-                highlightElement.style.width = `${rect.width}px`;
-                highlightElement.style.height = `${rect.height}px`;
+                highlightElement.style.left = '0';
+                highlightElement.style.top = '0';
+                highlightElement.style.width = '100%';
+                highlightElement.style.height = '100%';
                 highlightElement.style.backgroundColor = highlight.color || '#ffff00';
                 highlightElement.style.opacity = '0.5';
-                highlightElement.style.pointerEvents = 'none';
                 highlightElement.style.mixBlendMode = 'multiply';
                 highlightElement.style.borderRadius = '2px';
                 highlightElement.style.zIndex = '2';
-                highlightElement.title = highlight.text || '';
-                
-                pageLayer.appendChild(highlightElement);
+                highlightElement.title = 'Click to delete highlight';
+                highlightElement.style.cursor = 'pointer';
+
+                // Add click handler to the highlight element
+                highlightElement.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  const confirmDelete = window.confirm('Do you want to delete this highlight?');
+                  if (confirmDelete) {
+                    deleteHighlight({
+                      ...highlight,
+                      pdf_id: window.location.pathname.split('/').pop() // Get PDF ID from URL
+                    });
+                  }
+                });
+
+                highlightContainer.appendChild(highlightElement);
+                pageLayer.appendChild(highlightContainer);
               }
             }
           });
@@ -360,14 +380,14 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
           });
           
           // Calculate positions relative to PDF pages
-          const adjustedRects = rects.map(rect => {
-            const pos = getRelativePosition(rect);
-            return pos ? {
-              ...pos,
+        const adjustedRects = rects.map(rect => {
+          const pos = getRelativePosition(rect);
+          return pos ? {
+            ...pos,
               text: text
-            } : null;
-          }).filter(Boolean);
-          
+          } : null;
+        }).filter(Boolean);
+
           if (adjustedRects.length > 0) {
             setSelectionRects(adjustedRects);
           }
@@ -433,6 +453,29 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     setTimeout(positionHighlightLayer, 50);
   };
 
+  // Add deleteHighlight function
+  const deleteHighlight = async (highlight) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/pdfs/highlights/${highlight.pdf_id}/${highlight.timestamp}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (response.ok) {
+        // Remove the highlight from local state
+        setHighlights(prevHighlights => 
+          prevHighlights.filter(h => h.timestamp !== highlight.timestamp)
+        );
+      } else {
+        console.error('Failed to delete highlight');
+      }
+    } catch (error) {
+      console.error('Error deleting highlight:', error);
+    }
+  };
+
   // Remove any existing highlight mode indicators from the DOM
   useEffect(() => {
     // Find and remove any existing highlight mode indicators
@@ -444,38 +487,77 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
 
   return (
     <>
-      {/* Color picker in the top right */}
+      {/* Color picker below header */}
       {isHighlightingEnabled && (
         <div
           style={{
             position: "fixed",
-            top: 20,
-            right: 20,
+            top: 80, // Changed from 20 to 80 to position below header
+            left: 70,
             zIndex: 9999,
             background: "#fff",
-            padding: "10px",
-            borderRadius: "4px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
           }}
         >
-          <label style={{ marginRight: "5px" }}>Highlight Color:</label>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center",
+            gap: "8px",
+          }}>
+            <label 
+              style={{ 
+                fontSize: "14px",
+                color: "#333",
+                fontWeight: "500",
+              }}
+            >
+              Highlight Color:
+            </label>
+            <div style={{
+              position: "relative",
+              width: "32px",
+              height: "32px",
+              borderRadius: "4px",
+              overflow: "hidden",
+              border: "2px solid #eee"
+            }}>
           <input
             type="color"
             value={selectedColor}
             onChange={(e) => setSelectedColor(e.target.value)}
-          />
+                style={{
+                  position: "absolute",
+                  top: "-2px",
+                  left: "-2px",
+                  width: "36px",
+                  height: "36px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              />
+            </div>
+          </div>
           {!viewerPagesFound && (
             <button
               onClick={positionHighlightLayer}
               style={{
-                marginLeft: "10px",
-                padding: "5px 10px",
+                padding: "6px 12px",
                 background: "#4CAF50",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+                transition: "background 0.2s",
               }}
+              onMouseOver={(e) => e.target.style.background = "#45a049"}
+              onMouseOut={(e) => e.target.style.background = "#4CAF50"}
             >
               Retry Setup
             </button>

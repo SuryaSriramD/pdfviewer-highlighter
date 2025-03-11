@@ -39,4 +39,6 @@ except Exception as e:
     print(f"❌ Error connecting to MongoDB: {str(e)}")
     raise e
 
+# Collections
 highlights_collection = db["highlights"]
+pdf_history_collection = db["pdf_history"]  # New collection for tracking PDF access history
