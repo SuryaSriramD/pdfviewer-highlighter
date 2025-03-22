@@ -1,16 +1,24 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
-export default function Home() {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState(null);
-  const [recentPdfs, setRecentPdfs] = useState([]);
+interface PdfRecord {
+  pdf_id: string;
+  filename: string;
+  last_accessed: string;
+  access_count?: number;
+}
+
+export default function Home(): React.ReactElement {
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [recentPdfs, setRecentPdfs] = useState<PdfRecord[]>([]);
   const router = useRouter();
 
   // Fetch recent PDFs when the component mounts
   useEffect(() => {
-    const fetchRecentPdfs = async () => {
+    const fetchRecentPdfs = async (): Promise<void> => {
       try {
         const response = await fetch('http://localhost:8000/pdfs/recent/default-user');
         const data = await response.json();
@@ -23,8 +31,8 @@ export default function Home() {
     fetchRecentPdfs();
   }, []);
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     if (!file.type.includes('pdf')) {
@@ -63,14 +71,14 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error uploading PDF:', error);
-      setError(error.message || 'Failed to upload PDF');
+      setError(error instanceof Error ? error.message : 'Failed to upload PDF');
     } finally {
       setUploading(false);
     }
   };
 
   // Function to clear history
-  const clearHistory = async () => {
+  const clearHistory = async (): Promise<void> => {
     try {
       await fetch('http://localhost:8000/pdfs/recent/clear/default-user', {
         method: 'DELETE',
@@ -227,4 +235,4 @@ export default function Home() {
       </div>
     </div>
   );
-}
+} 

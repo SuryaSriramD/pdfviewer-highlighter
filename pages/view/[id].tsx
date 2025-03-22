@@ -1,11 +1,12 @@
+import React from 'react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import PdfViewer from '../../components/PdfViewer';
 
-export default function ViewPdf() {
+export default function ViewPdf(): React.ReactElement {
   const router = useRouter();
   const { id } = router.query;
-  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -13,7 +14,7 @@ export default function ViewPdf() {
       setPdfUrl(url);
       
       // Record PDF access
-      const recordPdfAccess = async () => {
+      const recordPdfAccess = async (): Promise<void> => {
         try {
           await fetch(`http://localhost:8000/pdfs/access/${id}`, {
             method: 'POST',

@@ -1,13 +1,50 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [], isHighlightingEnabled }) => {
-  const [selectedColor, setSelectedColor] = useState("#ffff00");
-  const [highlights, setHighlights] = useState([]);
-  const [selectionRects, setSelectionRects] = useState([]);
-  const highlightLayerRef = useRef(null);
-  const [selectedText, setSelectedText] = useState("");
-  const [selectionPosition, setSelectionPosition] = useState(null);
-  const [viewerPagesFound, setViewerPagesFound] = useState(false);
+// Define types
+interface HighlightRect {
+  pageIndex: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  text?: string;
+  [key: string]: any;
+}
+
+interface HighlightType {
+  rects: HighlightRect[];
+  color: string;
+  text: string;
+  timestamp: string;
+  pdf_id?: string;
+  [key: string]: any;
+}
+
+interface PdfHighlighterProps {
+  pdfContainerRef: React.RefObject<HTMLDivElement>;
+  onHighlight?: (highlight: HighlightType) => void;
+  existingHighlights?: HighlightType[];
+  isHighlightingEnabled: boolean;
+}
+
+interface SelectionPosition {
+  left: number;
+  top: number;
+}
+
+const PdfHighlighter: React.FC<PdfHighlighterProps> = ({ 
+  pdfContainerRef, 
+  onHighlight, 
+  existingHighlights = [], 
+  isHighlightingEnabled 
+}) => {
+  const [selectedColor, setSelectedColor] = useState<string>("#ffff00");
+  const [highlights, setHighlights] = useState<HighlightType[]>([]);
+  const [selectionRects, setSelectionRects] = useState<HighlightRect[]>([]);
+  const highlightLayerRef = useRef<HTMLDivElement | null>(null);
+  const [selectedText, setSelectedText] = useState<string>("");
+  const [selectionPosition, setSelectionPosition] = useState<SelectionPosition | null>(null);
+  const [viewerPagesFound, setViewerPagesFound] = useState<boolean>(false);
 
   // Load existing highlights
   useEffect(() => {
@@ -16,7 +53,7 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     }
   }, [existingHighlights]);
 
-  // FIXED: Completely revised highlight layer positioning
+  // Position highlight layer
   const positionHighlightLayer = useCallback(() => {
     if (!pdfContainerRef.current) return;
 
@@ -35,22 +72,22 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
         const containerRect = container.getBoundingClientRect();
         
         // Find or create a highlight layer for this page
-        let pageHighlightLayer = container.querySelector(`.page-highlight-layer-${pageIndex}`);
+        let pageHighlightLayer = container.querySelector(`.page-highlight-layer-${pageIndex}`) as HTMLElement | null;
         if (!pageHighlightLayer) {
           pageHighlightLayer = document.createElement('div');
           pageHighlightLayer.className = `page-highlight-layer page-highlight-layer-${pageIndex}`;
           pageHighlightLayer.style.position = 'absolute';
           pageHighlightLayer.style.pointerEvents = 'none';
           pageHighlightLayer.style.zIndex = '2'; // Same z-index as text layer
-          pageHighlightLayer.dataset.pageIndex = pageIndex;
+          pageHighlightLayer.dataset.pageIndex = pageIndex.toString();
           
           // Insert the highlight layer as a sibling of the text layer
-          textLayer.parentNode.insertBefore(pageHighlightLayer, textLayer.nextSibling);
+          textLayer.parentNode?.insertBefore(pageHighlightLayer, textLayer.nextSibling);
         }
         
         // Position the highlight layer exactly over the text layer
-        pageHighlightLayer.style.top = `${textLayer.offsetTop}px`;
-        pageHighlightLayer.style.left = `${textLayer.offsetLeft}px`;
+        pageHighlightLayer.style.top = `${(textLayer as HTMLElement).offsetTop}px`;
+        pageHighlightLayer.style.left = `${(textLayer as HTMLElement).offsetLeft}px`;
         pageHighlightLayer.style.width = `${textLayerRect.width}px`;
         pageHighlightLayer.style.height = `${textLayerRect.height}px`;
         
@@ -74,20 +111,20 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
       canvasLayers.forEach((canvasLayer, pageIndex) => {
         const canvasLayerRect = canvasLayer.getBoundingClientRect();
         
-        let pageHighlightLayer = container.querySelector(`.page-highlight-layer-${pageIndex}`);
+        let pageHighlightLayer = container.querySelector(`.page-highlight-layer-${pageIndex}`) as HTMLElement | null;
         if (!pageHighlightLayer) {
           pageHighlightLayer = document.createElement('div');
           pageHighlightLayer.className = `page-highlight-layer page-highlight-layer-${pageIndex}`;
           pageHighlightLayer.style.position = 'absolute';
           pageHighlightLayer.style.pointerEvents = 'none';
           pageHighlightLayer.style.zIndex = '2';
-          pageHighlightLayer.dataset.pageIndex = pageIndex;
+          pageHighlightLayer.dataset.pageIndex = pageIndex.toString();
           
-          canvasLayer.parentNode.insertBefore(pageHighlightLayer, canvasLayer.nextSibling);
+          canvasLayer.parentNode?.insertBefore(pageHighlightLayer, canvasLayer.nextSibling);
         }
         
-        pageHighlightLayer.style.top = `${canvasLayer.offsetTop}px`;
-        pageHighlightLayer.style.left = `${canvasLayer.offsetLeft}px`;
+        pageHighlightLayer.style.top = `${(canvasLayer as HTMLElement).offsetTop}px`;
+        pageHighlightLayer.style.left = `${(canvasLayer as HTMLElement).offsetLeft}px`;
         pageHighlightLayer.style.width = `${canvasLayerRect.width}px`;
         pageHighlightLayer.style.height = `${canvasLayerRect.height}px`;
       });
@@ -104,14 +141,14 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
       viewerPages.forEach((page, pageIndex) => {
         const pageRect = page.getBoundingClientRect();
         
-        let pageHighlightLayer = container.querySelector(`.page-highlight-layer-${pageIndex}`);
+        let pageHighlightLayer = container.querySelector(`.page-highlight-layer-${pageIndex}`) as HTMLElement | null;
         if (!pageHighlightLayer) {
           pageHighlightLayer = document.createElement('div');
           pageHighlightLayer.className = `page-highlight-layer page-highlight-layer-${pageIndex}`;
           pageHighlightLayer.style.position = 'absolute';
           pageHighlightLayer.style.pointerEvents = 'none';
           pageHighlightLayer.style.zIndex = '2';
-          pageHighlightLayer.dataset.pageIndex = pageIndex;
+          pageHighlightLayer.dataset.pageIndex = pageIndex.toString();
           
           page.appendChild(pageHighlightLayer);
         }
@@ -133,7 +170,7 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     const container = pdfContainerRef.current;
     
     // Handle scroll events
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       requestAnimationFrame(positionHighlightLayer);
     };
     
@@ -170,8 +207,8 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     };
   }, [pdfContainerRef, positionHighlightLayer]);
 
-  // FIXED: Improved relative position calculation
-  const getRelativePosition = useCallback((rect) => {
+  // Improved relative position calculation
+  const getRelativePosition = useCallback((rect: DOMRect): HighlightRect | null => {
     if (!pdfContainerRef.current) return null;
     
     const container = pdfContainerRef.current;
@@ -273,7 +310,7 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     };
   }, [pdfContainerRef]);
 
-  // FIXED: Improved highlight creation
+  // Improved highlight creation
   useEffect(() => {
     if (!pdfContainerRef.current) return;
     
@@ -302,7 +339,7 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
             if (rect) {
               const pageIndex = rect.pageIndex || 0;
               const pageLayer = Array.from(pageHighlightLayers).find(
-                layer => parseInt(layer.dataset.pageIndex) === pageIndex
+                layer => parseInt(layer.getAttribute('data-page-index') || '0') === pageIndex
               );
               
               if (pageLayer) {
@@ -350,7 +387,7 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     }
   }, [highlights, pdfContainerRef, positionHighlightLayer]);
 
-  // FIXED: Improved text selection handling
+  // Improved text selection handling
   useEffect(() => {
     if (!isHighlightingEnabled) {
       setSelectedText("");
@@ -358,8 +395,10 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
       return;
     }
 
-    const checkSelection = () => {
+    const checkSelection = (): void => {
       const selection = window.getSelection();
+      if (!selection) return;
+      
       const text = selection.toString().trim();
       
       if (text && selection.rangeCount > 0) {
@@ -380,13 +419,13 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
           });
           
           // Calculate positions relative to PDF pages
-        const adjustedRects = rects.map(rect => {
-          const pos = getRelativePosition(rect);
-          return pos ? {
-            ...pos,
+          const adjustedRects = rects.map(rect => {
+            const pos = getRelativePosition(rect);
+            return pos ? {
+              ...pos,
               text: text
-          } : null;
-        }).filter(Boolean);
+            } : null;
+          }).filter(Boolean) as HighlightRect[];
 
           if (adjustedRects.length > 0) {
             setSelectionRects(adjustedRects);
@@ -399,10 +438,13 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     };
 
     // Check for selection on mouseup
-    const handleMouseUp = (e) => {
+    const handleMouseUp = (e: MouseEvent): void => {
       // Don't trigger if clicking on the highlight button
-      if (e.target.classList.contains('highlight-button') || 
-          e.target.closest('.highlight-button')) {
+      if (
+        e.target instanceof Element && 
+        (e.target.classList.contains('highlight-button') || 
+        e.target.closest('.highlight-button'))
+      ) {
         e.stopPropagation();
         return;
       }
@@ -417,8 +459,8 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     };
   }, [isHighlightingEnabled, getRelativePosition]);
 
-  // FIXED: Improved highlight application
-  const applyHighlight = (e) => {
+  // Improved highlight application
+  const applyHighlight = (e: React.MouseEvent): void => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -426,7 +468,7 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
       return;
     }
 
-    const newHighlight = {
+    const newHighlight: HighlightType = {
       rects: selectionRects,
       color: selectedColor,
       text: selectedText,
@@ -444,7 +486,8 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
     }
 
     // Clear selection
-    window.getSelection().removeAllRanges();
+    const selection = window.getSelection();
+    if (selection) selection.removeAllRanges();
     setSelectedText("");
     setSelectionPosition(null);
     setSelectionRects([]);
@@ -454,7 +497,7 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
   };
 
   // Add deleteHighlight function
-  const deleteHighlight = async (highlight) => {
+  const deleteHighlight = async (highlight: HighlightType): Promise<void> => {
     try {
       const response = await fetch(
         `http://localhost:8000/pdfs/highlights/${highlight.pdf_id}/${highlight.timestamp}`,
@@ -556,8 +599,16 @@ const PdfHighlighter = ({ pdfContainerRef, onHighlight, existingHighlights = [],
                 fontWeight: "500",
                 transition: "background 0.2s",
               }}
-              onMouseOver={(e) => e.target.style.background = "#45a049"}
-              onMouseOut={(e) => e.target.style.background = "#4CAF50"}
+              onMouseOver={(e) => {
+                if (e.currentTarget instanceof HTMLElement) {
+                  e.currentTarget.style.background = "#45a049";
+                }
+              }}
+              onMouseOut={(e) => {
+                if (e.currentTarget instanceof HTMLElement) {
+                  e.currentTarget.style.background = "#4CAF50";
+                }
+              }}
             >
               Retry Setup
             </button>

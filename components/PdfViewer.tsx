@@ -5,24 +5,48 @@ import PdfHighlighter from "./PdfHighlighter";
 import PdfToolbar from "./PdfToolbar";
 import { FaHighlighter, FaTimes, FaChevronLeft, FaChevronRight, FaTrash, FaSearchPlus, FaSearchMinus } from "react-icons/fa";
 
-const PdfViewer = ({ pdfUrl, onHighlight }) => {
-  const pdfContainerRef = useRef(null);
-  const [pdfId, setPdfId] = useState(null);
-  const [existingHighlights, setExistingHighlights] = useState([]);
-  const [isLoadingHighlights, setIsLoadingHighlights] = useState(false);
-  const fileInputRef = useRef(null);
-  const [selectedTool, setSelectedTool] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchBar, setShowSearchBar] = useState(false);
-  const [isHighlightingEnabled, setIsHighlightingEnabled] = useState(false);
-  const [pdfLoaded, setPdfLoaded] = useState(false);
-  const [showHighlightsPanel, setShowHighlightsPanel] = useState(false);
-  const [pdfHighlighterKey, setPdfHighlighterKey] = useState(0);
-  const [pdfFilename, setPdfFilename] = useState("");
-  const [scale, setScale] = useState(1);
+// Define types for component props
+interface PdfViewerProps {
+  pdfUrl: string;
+  onHighlight?: (highlight: HighlightType) => void;
+}
+
+// Define types for highlight data
+interface HighlightType {
+  rects: HighlightRect[];
+  color: string;
+  text: string;
+  timestamp: string;
+  [key: string]: any;
+}
+
+interface HighlightRect {
+  pageIndex: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  [key: string]: any;
+}
+
+const PdfViewer: React.FC<PdfViewerProps> = ({ pdfUrl, onHighlight }) => {
+  const pdfContainerRef = useRef<HTMLDivElement | null>(null);
+  const [pdfId, setPdfId] = useState<string | null>(null);
+  const [existingHighlights, setExistingHighlights] = useState<HighlightType[]>([]);
+  const [isLoadingHighlights, setIsLoadingHighlights] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
+  const [isHighlightingEnabled, setIsHighlightingEnabled] = useState<boolean>(false);
+  const [pdfLoaded, setPdfLoaded] = useState<boolean>(false);
+  const [showHighlightsPanel, setShowHighlightsPanel] = useState<boolean>(false);
+  const [pdfHighlighterKey, setPdfHighlighterKey] = useState<number>(0);
+  const [pdfFilename, setPdfFilename] = useState<string>("");
+  const [scale, setScale] = useState<number>(1);
 
   // Function to handle tool selection
-  const handleToolSelect = (toolId) => {
+  const handleToolSelect = (toolId: string): void => {
     // First, disable all tools
     setShowSearchBar(false);
     setIsHighlightingEnabled(false);
@@ -39,8 +63,8 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
   };
 
   // Function to handle PDF upload
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
     if (!file || !file.type.includes('pdf')) {
       alert('Please select a valid PDF file');
       return;
@@ -67,7 +91,7 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
   };
 
   // Function to save highlights to backend
-  const saveHighlight = async (highlight) => {
+  const saveHighlight = async (highlight: HighlightType): Promise<void> => {
     if (!pdfId) {
       console.error('No PDF ID available');
       return;
@@ -102,7 +126,7 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
   };
 
   // Function to delete a highlight
-  const deleteHighlight = async (highlight) => {
+  const deleteHighlight = async (highlight: HighlightType): Promise<void> => {
     if (!pdfId || !highlight.timestamp) {
       console.error('Cannot delete highlight: Missing PDF ID or timestamp', { pdfId, highlight });
       alert('Cannot delete highlight: Missing required information');
@@ -133,7 +157,6 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
         setExistingHighlights(updatedHighlights);
         
         // Force re-render of PdfHighlighter by creating a new array reference
-        const highlightsForHighlighter = [...updatedHighlights];
         setPdfHighlighterKey(prev => prev + 1); // Add this state for forcing re-render
       } else {
         console.error('Failed to delete highlight:', responseData);
@@ -141,12 +164,12 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
       }
     } catch (error) {
       console.error('Error deleting highlight:', error);
-      alert('Failed to delete highlight: ' + error.message);
+      alert(`Failed to delete highlight: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   // Function to delete all highlights
-  const deleteAllHighlights = async () => {
+  const deleteAllHighlights = async (): Promise<void> => {
     if (!pdfId) {
       console.error('Cannot delete highlights: No PDF ID available');
       return;
@@ -207,12 +230,12 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
       setPdfHighlighterKey(prev => prev + 1); // Force re-render of PdfHighlighter
     } catch (error) {
       console.error('Error deleting all highlights:', error);
-      alert('Failed to delete all highlights: ' + error.message);
+      alert(`Failed to delete all highlights: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   // Load existing highlights when PDF is loaded
-  const loadHighlights = useCallback(async () => {
+  const loadHighlights = useCallback(async (): Promise<void> => {
     if (!pdfId) return;
     
     setIsLoadingHighlights(true);
@@ -224,7 +247,7 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
       
       const data = await response.json();
       // Flatten the highlights array if needed
-      const highlights = data.highlights.flatMap(doc => doc.highlights || []);
+      const highlights = data.highlights.flatMap((doc: any) => doc.highlights || []);
       console.log('Loaded highlights:', highlights);
       setExistingHighlights(highlights);
     } catch (error) {
@@ -253,7 +276,7 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
       setPdfId(id);
       
       // Fetch PDF info
-      const fetchPdfInfo = async () => {
+      const fetchPdfInfo = async (): Promise<void> => {
         try {
           const response = await fetch(`http://localhost:8000/pdfs/info/${id}`);
           if (response.ok) {
@@ -271,7 +294,7 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
   }, []);
 
   // Handle PDF loading completion
-  const handleDocumentLoad = () => {
+  const handleDocumentLoad = (): void => {
     setPdfLoaded(true);
     
     // Add a small delay to ensure the PDF is fully rendered
@@ -279,7 +302,9 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
       // Fix any overflow issues that might cause scrollbars
       const viewerElements = document.querySelectorAll('.rpv-core__viewer, .rpv-core__viewer-container, .rpv-core__inner-page');
       viewerElements.forEach(el => {
-        el.style.overflow = 'visible';
+        if (el instanceof HTMLElement) {
+          el.style.overflow = 'visible';
+        }
       });
     }, 500);
   };
@@ -287,10 +312,10 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
   // Remove any existing highlight mode indicators
   useEffect(() => {
     // Find and remove any existing highlight mode indicators
-    const removeExistingIndicators = () => {
+    const removeExistingIndicators = (): void => {
       const existingIndicators = document.querySelectorAll('.highlight-mode-active');
       existingIndicators.forEach(indicator => {
-        if (indicator.textContent.includes('Highlight Mode Active')) {
+        if (indicator.textContent?.includes('Highlight Mode Active')) {
           indicator.remove();
         }
       });
@@ -308,16 +333,16 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
   }, [isHighlightingEnabled]);
 
   // Toggle highlights panel
-  const toggleHighlightsPanel = () => {
+  const toggleHighlightsPanel = (): void => {
     setShowHighlightsPanel(!showHighlightsPanel);
   };
 
   // Add zoom functions
-  const zoomIn = () => {
+  const zoomIn = (): void => {
     setScale(prevScale => Math.min(prevScale + 0.1, 3)); // Max zoom 300%
   };
 
-  const zoomOut = () => {
+  const zoomOut = (): void => {
     setScale(prevScale => Math.max(prevScale - 0.1, 0.5)); // Min zoom 50%
   };
 
@@ -708,7 +733,7 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
         .zoom-controls {
           position: fixed;
           left: 0;
-          bottom: 20px; /* Changed from top to bottom */
+          bottom: 20px;
           width: 60px;
           background: white;
           padding: 10px 0;
@@ -751,4 +776,4 @@ const PdfViewer = ({ pdfUrl, onHighlight }) => {
   );
 };
 
-export default PdfViewer;
+export default PdfViewer; 

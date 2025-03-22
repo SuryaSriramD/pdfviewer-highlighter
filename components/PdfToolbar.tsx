@@ -1,8 +1,21 @@
 import React from 'react';
 import { FaHighlighter, FaCrop, FaSearch, FaSquare, FaStickyNote } from 'react-icons/fa';
 
-const PdfToolbar = ({ onToolSelect, selectedTool }) => {
-  const tools = [
+// Define types for props
+interface PdfToolbarProps {
+  onToolSelect: (toolId: string) => void;
+  selectedTool: string | null;
+}
+
+// Define tool interface
+interface Tool {
+  id: string;
+  icon: React.ComponentType<any>;
+  label: string;
+}
+
+const PdfToolbar: React.FC<PdfToolbarProps> = ({ onToolSelect, selectedTool }) => {
+  const tools: Tool[] = [
     { id: 'highlight', icon: FaHighlighter, label: 'Highlight Text' },
     { id: 'clip', icon: FaCrop, label: 'Clip Selection' },
     { id: 'rectangle', icon: FaSquare, label: 'Draw Rectangle' },
@@ -10,7 +23,7 @@ const PdfToolbar = ({ onToolSelect, selectedTool }) => {
     { id: 'sticky', icon: FaStickyNote, label: 'Add Sticky Note' },
   ];
 
-  const handleToolClick = (toolId) => {
+  const handleToolClick = (toolId: string): void => {
     console.log(`Toolbar: Clicked on tool ${toolId}`);
     onToolSelect(toolId);
   };
