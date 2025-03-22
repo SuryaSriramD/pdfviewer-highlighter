@@ -79,13 +79,14 @@ A full-stack web application for viewing PDFs with text highlighting functionali
 ```
 pdf-viewer-project/
 ├── components/                # React components
-│   ├── PdfHighlighter.js      # Highlighting functionality
-│   ├── PdfToolbar.js          # Toolbar with tools
-│   └── PdfViewer.js           # Main PDF viewer component
+│   ├── PdfHighlighter.tsx      # Highlighting functionality
+│   ├── PdfToolbar.tsx          # Toolbar with tools
+│   └── PdfViewer.tsx           # Main PDF viewer component
 ├── pages/                     # Next.js pages
-│   ├── _app.js                # Next.js app component
-│   ├── index.js               # Home page with upload
-│   └── view/                  # PDF viewer pages
+│   ├── _app.tsx                # Custom app component
+│   ├── index.tsx               # Home page with upload
+│   └── view/
+        └── [id].tsx           # Dynamic PDF viewer page
 ├── public/                    # Static assets
 │   └── pdfs/                  # PDF worker files
 │       ├── pdf.worker.js      # PDF.js worker
